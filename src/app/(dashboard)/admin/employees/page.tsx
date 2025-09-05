@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
@@ -14,14 +15,14 @@ import {
 import { Button } from "@/components/ui/button";
 
 const Page = async () => {
-  const { userId } = await auth();
-  if (!userId) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
     redirect("/sign-in");
   }
 
   const user = await prisma.user.findUnique({
     where: {
-      clerkId: userId,
+      id: session.user.id,
     },
     select: {
       companyId: true,

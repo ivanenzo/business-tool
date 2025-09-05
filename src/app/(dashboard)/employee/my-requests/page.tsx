@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
@@ -16,14 +17,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 const page = async () => {
-  const { userId } = await auth();
-  if (!userId) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
     redirect("/");
   }
 
   const dbUser = await prisma.user.findUnique({
     where: {
-      clerkId: userId,
+      id: session.user.id,
     },
   });
 

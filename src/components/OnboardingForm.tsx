@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useUser } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,8 +29,7 @@ import { useRouter } from "next/navigation";
 import { RadioGroup } from "@radix-ui/react-radio-group";
 import { RadioGroupItem } from "./ui/radio-group";
 import { cn } from "@/lib/utils";
-import { createAdmin, createEmployee } from "@/lib/actions/onboarding";
-import { set } from "date-fns";
+import { useCreateAdmin, useCreateEmployee } from "@/lib/hooks/useOnboarding";
 import { toast } from "sonner";
 
 const employeeSchema = z.object({
@@ -72,12 +70,14 @@ const OnboardingForm = ({
   lastName,
 }: OnboardingFormProps) => {
   const router = useRouter();
-  const { user, isLoaded } = useUser();
   const [accountType, setAccountType] = useState<"admin" | "employee">(
     "employee"
   );
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const createEmployeeMutation = useCreateEmployee();
+  const createAdminMutation = useCreateAdmin();
 
   const employeeForm = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
@@ -103,21 +103,16 @@ const OnboardingForm = ({
   });
 
   const handleEmployeeSubmit = async (data: EmployeeFormValues) => {
-    if (!user) {
-      return;
-    }
-
     let canRedirect = false;
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const response = await createEmployee(
-        data.department || undefined,
-        user.id,
-        data.invitationCode
-      );
+      const response = await createEmployeeMutation.mutateAsync({
+        department: data.department,
+        invitationCode: data.invitationCode,
+      });
 
       console.log(response);
 
@@ -144,22 +139,17 @@ const OnboardingForm = ({
   };
 
   const handleAdminSubmit = async (data: AdminFormValues) => {
-    if (!user) {
-      return;
-    }
-
     let canRedirect = false;
 
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const response = await createAdmin(
-        data.companyName,
-        data.companyWebsite || "",
-        data.companyLogo || "",
-        user.id
-      );
+      const response = await createAdminMutation.mutateAsync({
+        companyName: data.companyName,
+        companyWebsite: data.companyWebsite,
+        companyLogo: data.companyLogo,
+      });
 
       if (response?.success) {
         console.log("Admin created successfully");
@@ -184,10 +174,6 @@ const OnboardingForm = ({
       }, 1000);
     }
   };
-
-  if (!isLoaded) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <Card>

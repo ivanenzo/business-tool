@@ -51,10 +51,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import {
-  addCompanyHoliday,
-  deleteCompanyHoliday,
-  updateCompanyHoliday,
-} from "@/lib/actions/admin-actions";
+  useAddHoliday,
+  useUpdateHoliday,
+  useDeleteHoliday,
+} from "@/lib/hooks/useAdmin";
 
 const holidayFormSchema = z.object({
   name: z.string().min(1, "Holiday name is required"),
@@ -88,6 +88,11 @@ const CompanyHolidaysForm = ({
   const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState<boolean>(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+
+  // Mutations
+  const addHolidayMutation = useAddHoliday();
+  const updateHolidayMutation = useUpdateHoliday();
+  const deleteHolidayMutation = useDeleteHoliday();
 
   // form initisialisation with react-hhok-form
 
@@ -145,7 +150,7 @@ const CompanyHolidaysForm = ({
     setIsSubmitting(true);
 
     try {
-      const newHoliday = await addCompanyHoliday({
+      const newHoliday = await addHolidayMutation.mutateAsync({
         name: data.name,
         date: new Date(data.date),
         isRecurring: data.isRecurring || false,
@@ -170,12 +175,12 @@ const CompanyHolidaysForm = ({
     setIsSubmitting(true);
 
     try {
-      const updatedHoliday = await updateCompanyHoliday({
+      const updatedHoliday = await updateHolidayMutation.mutateAsync({
         id: selectedHoliday.id,
         name: data.name,
         date: new Date(data.date),
         isRecurring: data.isRecurring || false,
-      }); // call server action
+      });
 
       setHolidays(
         holidays.map((h) =>
@@ -199,13 +204,12 @@ const CompanyHolidaysForm = ({
 
   const handleDeleteHoliday = async () => {
     // call server action
-    if (!selectedHoliday) return;
 
     setIsSubmitting(true);
 
 
     try {
-      await deleteCompanyHoliday(selectedHoliday.id);
+      await deleteHolidayMutation.mutateAsync(selectedHoliday.id);
       setIsDeleteDialogOpen(false);
 
       toast.success("Holiday deleted successfully");

@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -13,15 +14,15 @@ import prisma from "@/lib/prisma";
 import AllowanceForm from "@/components/AllowanceForm";
 
 const page = async () => {
-  const { userId } = await auth();
+  const session = await getServerSession(authOptions);
 
-  if (!userId) {
+  if (!session?.user?.id) {
     redirect("/");
   }
 
   const user = await prisma.user.findUnique({
     where: {
-      clerkId: userId,
+      id: session.user.id,
     },
     include: {
       company: true,

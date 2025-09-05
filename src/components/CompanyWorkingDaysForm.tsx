@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Checkbox } from "./ui/checkbox";
-import { updateCompanyWorkingDays } from "@/lib/actions/admin-actions";
+import { useUpdateWorkingDays } from "@/lib/hooks/useAdmin";
+
 const weekdays = [
   {
     label: "Monday",
@@ -53,6 +54,8 @@ const CompanyWorkingDaysForm = ({
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  const updateWorkingDaysMutation = useUpdateWorkingDays();
+
   useEffect(() => {
     console.log(initialWorkingDays);
   }, [initialWorkingDays]);
@@ -67,10 +70,8 @@ const CompanyWorkingDaysForm = ({
     setIsSubmitting(true);
 
     try {
-      const data = await updateCompanyWorkingDays(selectedDays);
-      if (data.success) {
-        toast.success("Working days updated successfully");
-      }
+      await updateWorkingDaysMutation.mutateAsync(selectedDays);
+      toast.success("Working days updated successfully");
     } catch (error) {
       console.error(error);
       toast.error("Failed to update working days");

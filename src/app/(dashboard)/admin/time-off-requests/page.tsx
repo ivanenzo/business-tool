@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,13 +17,13 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 const page = async () => {
-  const { userId, sessionClaims } = await auth();
+  const session = await getServerSession(authOptions);
 
-  if (!userId) {
+  if (!session?.user?.id) {
     redirect("/sign-in");
   }
 
-  const { companyId } = sessionClaims.metadata;
+  const companyId = session.user.companyId;
 
   const requests = await prisma.timeOffRequest.findMany({
     where: {

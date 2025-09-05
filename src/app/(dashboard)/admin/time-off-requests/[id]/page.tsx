@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { formatDate, calculateDays } from "@/lib/utils";
 import { prisma } from "@/lib/prisma";
@@ -13,9 +14,9 @@ const page = async ({
     id: string;
   };
 }) => {
-  const { userId } = await auth();
+  const session = await getServerSession(authOptions);
 
-  if (!userId) {
+  if (!session?.user?.id) {
     redirect("/");
   }
 
@@ -45,7 +46,7 @@ const page = async ({
 
   const manager = await prisma.user.findUnique({
     where: {
-      clerkId: userId,
+      id: session.user.id,
     },
     include: {
       company: true,

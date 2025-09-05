@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { Alert, AlertDescription } from "./ui/alert";
-import { updateCompanyProfile } from "@/lib/actions/admin-actions";
+import { useUpdateCompanyProfile } from "@/lib/hooks/useAdmin";
 import { toast } from "sonner";
 
 const companyProfileSchema = z.object({
@@ -41,6 +41,8 @@ export default function CompanyProfileForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const updateCompanyProfileMutation = useUpdateCompanyProfile();
+
   const form = useForm<CompanyProfileFormValues>({
     resolver: zodResolver(companyProfileSchema),
     defaultValues: {
@@ -55,19 +57,13 @@ export default function CompanyProfileForm({
     setError(null);
 
     try {
-      // call server action to update company profile
-      const request = await updateCompanyProfile({
+      await updateCompanyProfileMutation.mutateAsync({
         name: data.name,
         website: data.website,
         logo: data.logo,
       });
 
-      if (request.success) {
-        toast.success("Company profile updated successfully");
-      } else {
-        toast.error("Failed to update company profile");
-      }
-
+      toast.success("Company profile updated successfully");
 
     } catch (error) {
       setError(

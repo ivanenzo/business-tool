@@ -1,20 +1,20 @@
 import InvitationCodes from '@/components/InvitationCodes';
 import prisma from '@/lib/prisma';
-import { auth } from '@clerk/nextjs/server'
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { redirect } from 'next/navigation';
 import React from 'react'
 
 const page = async () => {
+  const session = await getServerSession(authOptions);
 
-  const { userId } = await auth();
-
-  if (!userId) {
+  if (!session?.user?.id) {
     redirect("/")
   }
 
   const user = await prisma.user.findUnique({
     where: {
-      clerkId: userId
+      id: session.user.id
     },
     select: {
       companyId: true, 

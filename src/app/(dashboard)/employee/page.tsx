@@ -1,4 +1,5 @@
-import { auth } from "@clerk/nextjs/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -12,16 +13,16 @@ import {
 import prisma from "@/lib/prisma";
 
 const page = async () => {
-  const { userId } = await auth();
+  const session = await getServerSession(authOptions);
 
-  if (!userId) {
+  if (!session?.user?.id) {
     redirect("/");
   }
 
   const data = await prisma.timeOffRequest.findMany({
     where: {
       employee: {
-        clerkId: userId,
+        id: session.user.id,
       },
     },
     include: {
@@ -31,7 +32,7 @@ const page = async () => {
 
   const availableDays = await prisma.user.findUnique({
     where: {
-      clerkId: userId,
+      id: session.user.id,
     },
     select: {
       availableDays: true,

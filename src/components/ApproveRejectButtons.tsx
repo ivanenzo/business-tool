@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { updateTimeOffRequestStatus } from "@/lib/actions/admin-actions";
+import { useUpdateTimeOffRequestStatus } from "@/lib/hooks/useAdmin";
 import { toast } from "sonner";
 
 const ApproveRejectButtons = ({ id }: { id: string }) => {
@@ -25,6 +25,8 @@ const ApproveRejectButtons = ({ id }: { id: string }) => {
   const [actionType, setActionType] = useState<"APPROVED" | "REJECTED">(
     "APPROVED"
   );
+  
+  const updateTimeOffRequestStatusMutation = useUpdateTimeOffRequestStatus();
 
   const handleAction = async (status: "APPROVED" | "REJECTED") => {
     setActionType(status);
@@ -32,11 +34,10 @@ const ApproveRejectButtons = ({ id }: { id: string }) => {
   };
 
   const confirmAction = async () => {
-    // server action stuff
     setIsLoading(true);
 
     try {
-      await updateTimeOffRequestStatus({
+      await updateTimeOffRequestStatusMutation.mutateAsync({
         requestId: id,
         status: actionType,
         notes: notes,

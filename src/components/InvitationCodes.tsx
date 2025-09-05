@@ -22,7 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { generateInvitationCode } from "@/lib/actions/admin-actions";
+import { useGenerateInvitationCode } from "@/lib/hooks/useAdmin";
 
 interface InvitationCodesProps {
   initialCodes: Code[];
@@ -35,19 +35,19 @@ const InvitationCodes = ({ initialCodes }: InvitationCodesProps) => {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<Record<string, boolean>>({});
 
+  const generateInvitationCodeMutation = useGenerateInvitationCode();
+
   useEffect(() => {
     setCodes(initialCodes);
   }, [initialCodes]);
 
   const handleGenerateCode = async () => {
-    // call server action to generate code
-
     setIsGenerating(true);
     setIsLoading(true);
     setError(null);
 
     try {
-      const newCode = await generateInvitationCode();
+      const newCode = await generateInvitationCodeMutation.mutateAsync();
       setCodes((prev) => [newCode, ...prev]);
       toast.success("New code generated successfully");
     } catch (error) {

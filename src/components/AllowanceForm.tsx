@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { updateEmployeeAllowance } from "@/lib/actions/admin-actions";
+import { useUpdateEmployeeAllowance } from "@/lib/hooks/useAdmin";
 
 interface AllowanceFormProps {
   employeeId: string;
@@ -28,24 +28,22 @@ export default function AllowanceForm({
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [allowance, setAllowance] = useState<number>(currentAllowance);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  
+  const updateEmployeeAllowanceMutation = useUpdateEmployeeAllowance();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // TODO: Implement allowance update
-
-      const result = await updateEmployeeAllowance({
+      await updateEmployeeAllowanceMutation.mutateAsync({
         employeeId,
         availableDays: allowance,
       });
 
-      if (result.success) {
-        toast.success("Allowance updated successfully");
-        setIsOpen(false);
-        setAllowance(currentAllowance);
-      }
+      toast.success("Allowance updated successfully");
+      setIsOpen(false);
+      setAllowance(currentAllowance);
     } catch (error) {
       console.error("Error updating allowance:", error);
       toast.error("Failed to update allowance. Please try again.");

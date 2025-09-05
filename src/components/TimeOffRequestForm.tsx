@@ -37,7 +37,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Checkbox } from "./ui/checkbox";
-import { createTimeOffRequest } from "@/lib/actions/employee-actions";
+import { useCreateTimeOffRequest } from "@/lib/hooks/useEmployee";
 
 const getDaysBetween = (startDate: Date, endDate: Date) => {
   const days = [];
@@ -195,6 +195,8 @@ const TimeOffRequestForm = ({
   const [dateOverlapError, setDateOverlapError] = useState<string | null>(null);
   const [calendarOpen, setCalendarOpen] = useState<boolean>(false);
 
+  const createTimeOffRequestMutation = useCreateTimeOffRequest();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(requestSchema),
     defaultValues: {
@@ -270,8 +272,7 @@ const TimeOffRequestForm = ({
     }
 
     try {
-      // cALL server action to create time off request
-      const timeOffRequestData = await createTimeOffRequest(formData);
+      const timeOffRequestData = await createTimeOffRequestMutation.mutateAsync(formData);
       if (timeOffRequestData) {
         toast.success("Time off request created successfully");
         router.push("/employee/my-requests");
